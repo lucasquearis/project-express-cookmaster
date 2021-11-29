@@ -1,8 +1,9 @@
 const express = require('express');
-const createController = require('../controllers/users/create');
+const { create } = require('../controllers/users/create');
+const { authenticatorUsers } = require('../middlewares/authenticatorUsers');
 
 const usersRouter = express.Router({ mergeParams: true });
 
-usersRouter.post('/', createController.create);
+usersRouter.post('/', authenticatorUsers, create);
 
 module.exports = { usersRouter };
