@@ -18,7 +18,7 @@ const emailHelper = (email) => {
   return !((!email || !validEmailRgx));
 };
 
-const authenticatorUsers = async (req, _res, next) => {
+const validateUser = async (req, _res, next) => {
   const { name, email, password } = req.body;
   const validHelpers = [nameHelper(name), passwordHelper(password), emailHelper(email)];
   const someError = validHelpers.some((element) => element === false);
@@ -26,4 +26,4 @@ const authenticatorUsers = async (req, _res, next) => {
   return someError ? next(errorFormat) : next();
 };
 
-module.exports = { authenticatorUsers };
+module.exports = { validateUser };
