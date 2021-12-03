@@ -1,7 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const jwt = require('jsonwebtoken');
 const { getById } = require('../../models/recipes/getById');
-const updateRecipeModel = require('../../models/recipes/update');
+const putImageModel = require('../../models/recipes/putImage');
 
 const segredoSuperSecreto = 'fogaçaémelhor';
 
@@ -20,19 +20,15 @@ const verifyUserHelper = (token) => {
   return { userId: _id, role };
 };
 
-const update = async (body, id, token) => {
+const putImage = async (id, token) => {
   const ownerId = await verifyRecipeOwner(id);
   const statusUser = verifyUserHelper(token);
-  const { name, ingredients, preparation } = body;
   if (ownerId === statusUser.userId || statusUser.role === 'admin') {
-    const result = await updateRecipeModel.update(name, ingredients, preparation, id);
-    const responseFormat = {
-      ...result,
-      userId: statusUser.userId,
-    };
-    return responseFormat;
+    const baseUrl = `localhost:3000/src/uploads/${id}.jpeg`;
+    const response = await putImageModel.putImage(id, baseUrl);
+    return response;
   }
   throw unauthorizedUpdateRecipeError;
 };
 
-module.exports = { update };
+module.exports = { putImage };

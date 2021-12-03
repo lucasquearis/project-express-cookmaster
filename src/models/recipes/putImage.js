@@ -1,14 +1,14 @@
 const { ObjectId } = require('mongodb');
 const connection = require('../connection');
 
-const update = (name, ingredients, preparation, id) => connection()
+const putImage = (id, image) => connection()
     .then((db) => db.collection('recipes').findOneAndUpdate(
-      { _id: ObjectId(id) },
+      {
+        _id: ObjectId(id),
+      },
       {
         $set: {
-          name,
-          ingredients,
-          preparation,
+          image,
         },
       },
       {
@@ -17,4 +17,4 @@ const update = (name, ingredients, preparation, id) => connection()
     ))
     .then(({ value }) => value);
 
-module.exports = { update };
+module.exports = { putImage };
