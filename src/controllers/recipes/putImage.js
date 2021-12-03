@@ -7,6 +7,7 @@ const putImage = async (req, res, next) => {
     const token = req.headers.authorization;
     const result = await putImageService.putImage(id, token);
     res.status(StatusCodes.OK).json(result);
+    next();
   } catch (error) {
     next(error);
   }
