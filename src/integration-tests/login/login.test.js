@@ -12,24 +12,17 @@ const { expect } = chai;
 
 describe('POST /login', async () => {
   const DBServer = new MongoMemoryServer();
-
   before(async() => {
-    const URLMock = await DBServer.getUri();
-      const connectionConfig = { useNewUrlParser: true, useUnifiedTopology: true };
-      const connectionMock = await MongoClient.connect(URLMock, connectionConfig);
-      sinon.stub(MongoClient, 'connect').resolves(connectionMock);
-      const db = await connectionMock.db('Cookmaster');
-      const users = await db.collection('users');
-      await users.insertOne({ email: 'lucas@hotmail.com', password: '123456' });
-  });
-  after(async () => {
-    MongoClient.connect.restore();
     const URLMock = await DBServer.getUri();
     const connectionConfig = { useNewUrlParser: true, useUnifiedTopology: true };
     const connectionMock = await MongoClient.connect(URLMock, connectionConfig);
+    sinon.stub(MongoClient, 'connect').resolves(connectionMock);
     const db = await connectionMock.db('Cookmaster');
     const users = await db.collection('users');
-    await users.deleteMany({});
+    await users.insertOne({ email: 'lucas@hotmail.com', password: '123456' });
+  });
+  after(async () => {
+    MongoClient.connect.restore();
   });
   describe('Quando não é inserido o campo "email" é gerado um erro', () => {
     let response = {};

@@ -5,54 +5,40 @@ const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const server = require('../../api/app');
 const { StatusCodes } = require('http-status-codes');
+const jwt = require('jsonwebtoken');
 
 chai.use(chaiHttp);
 
 const { expect } = chai;
 
-describe('POST /users', async () => {
+describe('POST /recipes', () => {
   const DBServer = new MongoMemoryServer();
   before(async() => {
     const URLMock = await DBServer.getUri();
     const connectionConfig = { useNewUrlParser: true, useUnifiedTopology: true };
     const connectionMock = await MongoClient.connect(URLMock, connectionConfig);
     sinon.stub(MongoClient, 'connect').resolves(connectionMock);
+    // https://stackoverflow.com/questions/48861967/writing-unit-tests-for-method-that-uses-jwt-token-in-javascript
+    sinon.stub(jwt, 'verify')
+    .onCall(0).throws({
+      name: 'JsonWebTokenError',
+      message: 'jwt malformed'
+    })
+    .onCall(1).resolves().callsFake(() => {
+      return Promise.resolve({success: 'Token is valid'});
+  });
   });
   after(async () => {
     MongoClient.connect.restore();
-  });
-  describe('Quando é criado com sucesso', () => {
-    let response = {};
-    before(async () => {
-      response = await chai.request(server)
-        .post('/users')
-        .send({
-            name: "string",
-            email: "lucaaaas@hotmail.com",
-            password: "string"
-          });
-    })
-
-    it('Retorna o código de status 201', () => {
-      expect(response).to.have.status(StatusCodes.CREATED);
-    });
-    it('Retorna um objeto user', () => {
-      expect(response.body).to.be.a('object');
-      expect(response.body).to.have.all.deep.keys('user')
-    });
-    it('Retorna todos os dados do usuário cadastrado' , () => {
-      const { body: { user } } = response;
-      expect(user).to.have.all.deep.keys('name', 'email', 'role', '_id');
-    });
   });
   describe('Quando não é inserido o campo "name" é gerado um erro', () => {
     let response = {};
     before(async () => {
       response = await chai.request(server)
-        .post('/users')
+        .post('/recipes')
         .send({
-            email: "lucaas@hotmail.com",
-            password: "string"
+            ingredients: "frango, batata",
+            preparation: "frita tudo e boa"
           });
     })
     it('Retorna o código de status 400', () => {
@@ -67,14 +53,14 @@ describe('POST /users', async () => {
       expect(message).to.be.equal("Invalid entries. Try again.");
     });
   });
-  describe('Quando não é inserido o campo "email" é gerado um erro', () => {
+  describe('Quando não é inserido o campo "ingredients" é gerado um erro', () => {
     let response = {};
     before(async () => {
       response = await chai.request(server)
-        .post('/users')
+        .post('/recipes')
         .send({
-            name: "lucas",
-            password: "string"
+            name: "frango",
+            preparation: "frita tudo e boa"
           });
     })
     it('Retorna o código de status 400', () => {
@@ -89,15 +75,14 @@ describe('POST /users', async () => {
       expect(message).to.be.equal("Invalid entries. Try again.");
     });
   });
-  describe('Quando é inserido o campo "email" não valido é gerado um erro', () => {
+  describe('Quando não é inserido o campo "preparation" é gerado um erro', () => {
     let response = {};
     before(async () => {
       response = await chai.request(server)
-        .post('/users')
+        .post('/recipes')
         .send({
-            name: "lucas",
-            email: 'lucas.com',
-            password: "string"
+            name: "frango",
+            ingredients: "frango, batata"
           });
     })
     it('Retorna o código de status 400', () => {
@@ -112,18 +97,20 @@ describe('POST /users', async () => {
       expect(message).to.be.equal("Invalid entries. Try again.");
     });
   });
-  describe('Quando não é inserido o campo "senha" é gerado um erro', () => {
+  describe('Quando é inserido o campo "token" inválido é gerado um erro', () => {
     let response = {};
     before(async () => {
       response = await chai.request(server)
-        .post('/users')
+        .post('/recipes')
         .send({
-            name: "lucas",
-            email: 'lucas.com',
-          });
+            name: "frango",
+            ingredients: "frango, batata",
+            preparation: "frita tudo e boa"
+          })
+          .set('authorization', 'asq');
     })
-    it('Retorna o código de status 400', () => {
-      expect(response).to.have.status(StatusCodes.BAD_REQUEST);
+    it('Retorna o código de status 401', () => {
+      expect(response).to.have.status(StatusCodes.UNAUTHORIZED);
     });
     it('Retorna um objeto message', () => {
       expect(response.body).to.be.a('object');
@@ -131,30 +118,31 @@ describe('POST /users', async () => {
     });
     it('Retorna a mensagem de erro' , () => {
       const { body: { message } } = response;
-      expect(message).to.be.equal("Invalid entries. Try again.");
+      expect(message).to.be.equal("jwt malformed");
     });
   });
-  describe('Quando o "email" já foi acastrado é gerado um erro', () => {
+  describe('Quando a receita é criada com sucesso', () => {
     let response = {};
     before(async () => {
       response = await chai.request(server)
-        .post('/users')
+        .post('/recipes')
         .send({
-            name: "lucas",
-            email: 'lucaaaas@hotmail.com',
-            password: 'string'
-          });
+            name: "frango",
+            ingredients: "frango, batata",
+            preparation: "frita tudo e boa"
+          })
+          .set('authorization', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWFhNGVmOGEzMDM2YTUzYTFmYmU4ODciLCJlbWFpbCI6InJvb3RAZW1haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjM4NTU3NTI5LCJleHAiOjE2Mzg1NjExMjl9.IHHUyDTm0wK3fEpEhuLrBiQRCYU0-8QgA-H7mzSYcQI');
     })
-    it('Retorna o código de status 409', () => {
-      expect(response).to.have.status(StatusCodes.CONFLICT);
+    it('Retorna o código de status 201', () => {
+      expect(response).to.have.status(StatusCodes.CREATED);
     });
-    it('Retorna um objeto message', () => {
+    it('Retorna um objeto recipe', () => {
       expect(response.body).to.be.a('object');
-      expect(response.body).to.have.all.deep.keys('message')
+      expect(response.body).to.have.all.deep.keys('recipe')
     });
-    it('Retorna a mensagem de erro' , () => {
-      const { body: { message } } = response;
-      expect(message).to.be.equal("Email already registered");
+    it('Retorna receita com todos os dados' , () => {
+      const { body: { recipe } } = response;
+      expect(recipe).to.have.all.deep.keys('name', 'ingredients', 'preparation', '_id')
     });
   });
-});
+})
