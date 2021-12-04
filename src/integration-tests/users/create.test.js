@@ -14,14 +14,19 @@ describe('POST /users', () => {
   const DBServer = new MongoMemoryServer();
   before(async() => {
     const URLMock = await DBServer.getUri();
-      const connectionConfig = { useNewUrlParser: true, useUnifiedTopology: true };
-      const connectionMock = await MongoClient.connect(URLMock, connectionConfig);
+    const connectionConfig = { useNewUrlParser: true, useUnifiedTopology: true };
+    const connectionMock = await MongoClient.connect(URLMock, connectionConfig);
 
-      sinon.stub(MongoClient, 'connect').resolves(connectionMock);
+    sinon.stub(MongoClient, 'connect').resolves(connectionMock);
   });
   after(async () => {
     MongoClient.connect.restore();
-    await DBServer.stop();
+    const URLMock = await DBServer.getUri();
+    const connectionConfig = { useNewUrlParser: true, useUnifiedTopology: true };
+    const connectionMock = await MongoClient.connect(URLMock, connectionConfig);
+    const db = await connectionMock.db('Cookmaster');
+    const users = await db.collection('users');
+    await users.deleteMany({});
   });
   describe('Quando é criado com sucesso', () => {
     let response = {};
@@ -91,7 +96,7 @@ describe('POST /users', () => {
       expect(message).to.be.equal("Invalid entries. Try again.");
     });
   });
-  describe('Quando é inserido o campo "email" não é valido é gerado um erro', () => {
+  describe('Quando é inserido o campo "email" não valido é gerado um erro', () => {
     let response = {};
     before(async () => {
       response = await chai.request(server)
