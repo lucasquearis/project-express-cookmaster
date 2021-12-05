@@ -5,20 +5,21 @@ const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const server = require('../../api/app');
 const { StatusCodes } = require('http-status-codes');
+const MongoClientMock = require('../connectionMock');
 
 chai.use(chaiHttp);
 
 const { expect } = chai;
 
 describe('POST /login', async () => {
-  const DBServer = new MongoMemoryServer();
   before(async() => {
-    const URLMock = await DBServer.getUri();
-    const connectionConfig = { useNewUrlParser: true, useUnifiedTopology: true };
-    const connectionMock = await MongoClient.connect(URLMock, connectionConfig);
+    const connectionMock = await MongoClientMock()
     sinon.stub(MongoClient, 'connect').resolves(connectionMock);
     const db = await connectionMock.db('Cookmaster');
     const users = await db.collection('users');
+    await users.deleteMany({});
+    const recipes = await db.collection('recipes');
+    await recipes.deleteMany({});
     await users.insertOne({ email: 'lucas@hotmail.com', password: '123456' });
   });
   after(async () => {

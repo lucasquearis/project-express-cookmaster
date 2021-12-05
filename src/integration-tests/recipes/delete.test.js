@@ -5,29 +5,34 @@ const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const server = require('../../api/app');
 const { StatusCodes } = require('http-status-codes');
+const MongoClientMock = require('../connectionMock');
 
 chai.use(chaiHttp);
 const { expect } = chai;
 
 describe('DELETE /recipes/:id', () => {
-  const DBServer = new MongoMemoryServer();
+  let token;
+  let receita;
   before(async () => {
-    const URLMock = await DBServer.getUri();
-    const connectionConfig = { useNewUrlParser: true, useUnifiedTopology: true };
-    const connectionMock = await MongoClient.connect(URLMock, connectionConfig);
+    const connectionMock = await MongoClientMock()
     sinon.stub(MongoClient, 'connect').resolves(connectionMock);
-    user = await chai.request(server)
+    const db = await connectionMock.db('Cookmaster')
+    const users = await db.collection('users');
+    await users.deleteMany({});
+    const recipes = await db.collection('recipes');
+    await recipes.deleteMany({});
+    await chai.request(server)
     .post('/users')
     .send({
-        name: "string",
-        email: "lucas@hotmail.com",
-        password: "string"
+        name: "luiz",
+        email: "luiz@hotmail.com",
+        password: '12345',
       });
     token = await chai.request(server)
     .post('/login')
     .send({
-        email: 'lucas@hotmail.com',
-        password: 'string'
+        email: 'luiz@hotmail.com',
+        password: '12345',
       });
     receita = await chai.request(server)
     .post('/recipes')
@@ -59,8 +64,8 @@ describe('DELETE /recipes/:id', () => {
     let response = {};
     before(async () => {
       response = await chai.request(server)
-        .delete(`/recipes/${receita.body.recipe._id}`)
-        .set('authorization', token.body.token);
+      .delete(`/recipes/${receita.body.recipe._id}`)
+      .set('authorization', token.body.token);
     })
     it('Verifica se o código de status recebido é 204', () => {
       expect(response).to.have.status(StatusCodes.NO_CONTENT)

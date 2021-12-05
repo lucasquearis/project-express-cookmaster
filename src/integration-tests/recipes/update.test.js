@@ -2,22 +2,25 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const sinon = require('sinon');
 const { MongoClient } = require('mongodb');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const server = require('../../api/app');
 const { StatusCodes } = require('http-status-codes');
+const MongoClientMock = require('../connectionMock');
+
 
 chai.use(chaiHttp);
 const { expect } = chai;
 
 describe('PUT /recipes/:id', () => {
-  const DBServer = new MongoMemoryServer();
   let receita = {};
   let token = '';
   before(async () => {
-    const URLMock = await DBServer.getUri();
-    const connectionConfig = { useNewUrlParser: true, useUnifiedTopology: true };
-    const connectionMock = await MongoClient.connect(URLMock, connectionConfig);
+    const connectionMock = await MongoClientMock()
     sinon.stub(MongoClient, 'connect').resolves(connectionMock);
+    const db = await connectionMock.db('Cookmaster')
+    const users = await db.collection('users');
+    await users.deleteMany({});
+    const recipes = await db.collection('recipes');
+    await recipes.deleteMany({});
     user = await chai.request(server)
       .post('/users')
       .send({
