@@ -49,7 +49,7 @@ describe('POST /recipes', () => {
     });
     it('Retorna um objeto message', () => {
       expect(response.body).to.be.a('object');
-      expect(response.body).to.have.all.deep.keys('message')
+      expect(response.body).to.have.property('message')
     });
     it('Retorna a mensagem de erro' , () => {
       const { body: { message } } = response;

@@ -21,7 +21,7 @@ describe('PUT /recipes/:id', () => {
     await users.deleteMany({});
     const recipes = await db.collection('recipes');
     await recipes.deleteMany({});
-    user = await chai.request(server)
+    await chai.request(server)
       .post('/users')
       .send({
           name: "string",
@@ -41,7 +41,7 @@ describe('PUT /recipes/:id', () => {
         ingredients: "frango, batata",
         preparation: "frita tudo e boa"
       })
-      .set('authorization', token.body.token);
+    .set('authorization', token.body.token);
   });
   after(async () => {
     MongoClient.connect.restore();
