@@ -51,14 +51,14 @@ describe('PUT /recipes/:id/image/', () => {
     let response = {};
     before(async () => {
       response = await chai.request(server)
-        .post(`/recipes/${receita.body.recipe._id}/image`)
+        .put(`/recipes/${receita.body.recipe._id}/image`)
         .set('content-type', 'multipart/form-data')
         .set('authorization', token.body.token)
-        .attach('image', path.join(__dirname, '..', '..', 'uploads', 'ratinho.jpg'))
+        .attach('image', fs.readFileSync(path.join(__dirname, '..', '..', 'uploads', 'ratinho.jpg')))
     })
-    it('Verifica se o status code recebi é 404', () => {
+    it('Verifica se o status code recebi é 200', () => {
       console.log(response.body);
-      expect(response).to.have.status(StatusCodes.NOT_FOUND);
+      expect(response).to.have.status(StatusCodes.OK);
     })
   })
 });

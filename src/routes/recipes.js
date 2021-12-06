@@ -10,7 +10,6 @@ const { getById } = require('../controllers/recipes/getById');
 const { update } = require('../controllers/recipes/update');
 const { remove } = require('../controllers/recipes/delete');
 const { putImage } = require('../controllers/recipes/putImage');
-const { validateRecipeId } = require('../middlewares/validateRecipeId');
 
 const recipesRouter = express.Router({ mergeParams: true });
 const storage = multer.diskStorage({
@@ -29,7 +28,7 @@ recipesRouter.get('/', list);
 recipesRouter.get('/:id', getById);
 recipesRouter.put('/:id', authenticateLogin, validateRecipe, update);
 recipesRouter.put(
-  '/:id/image', authenticateLogin, validateRecipeId, putImage, upload.single('image'),
+  '/:id/image', authenticateLogin, putImage, upload.single('image'),
 );
 recipesRouter.delete('/:id', authenticateLogin, remove);
 

@@ -10,7 +10,7 @@ const cathUserId = (token) => {
 
 const create = async (name, ingredients, preparation, token) => {
   const userId = cathUserId(token);
-  const recipe = await createModel.create(name, ingredients, preparation, userId);
+  const recipe = await createModel.create({ name, ingredients, preparation, userId });
   return { recipe };
 };
 
