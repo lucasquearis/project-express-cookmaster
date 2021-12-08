@@ -128,7 +128,7 @@ Deverá ser possível adicionar uma imagem à uma receita, utilizando o upload d
 ## Data de Entrega
 
     - Serão `3` dias de projeto.
-    - Data de entrega para avaliação final do projeto: `08/12/2021 - 14:00h`.
+    - Data de entrega para avaliação final do projeto: `08/12/2021 - 20:00h`.
 
 ---
 
